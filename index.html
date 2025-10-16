@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Portofolio fotografi & ulasan game — gaya cyberpunk futuristik. Galeri, review interaktif, narasi visual, dan kontak." />
+    <meta name="theme-color" content="#0b0b10" />
+    <title>Portofolio — Fotografi & Ulasan Game</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- GSAP for optional entrance animations (kept deferred) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+
+    <style>
+        /* ========== STYLES (mobile-first, accessible) ========== */
+        :root{
+            --bg:#03030a;
+            --panel:#071026;
+            --neon-blue:#00e5ff;
+            --neon-purple:#8a2be2;
+            --muted:#9aa2b1;
+            --glass: rgba(255,255,255,0.04);
+            --accent-gradient: linear-gradient(90deg,var(--neon-blue),var(--neon-purple));
+            --fw-title: 'Orbitron', system-ui, -apple-system, sans-serif;
+            --fw-ui: 'Audiowide', system-ui, -apple-system, sans-serif;
+        }
+        html,body{
+            height:100%; margin:0; font-family:var(--fw-ui);
+            background:
+                radial-gradient(ellipse at 20% 10%, rgba(8,18,30,0.6), transparent 6%),
+                radial-gradient(ellipse at 80% 80%, rgba(20,0,40,0.5), transparent 10%),
+                var(--bg);
+            color:#dfe7f3; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+        }
+        #bg-canvas{ position:fixed; inset:0; z-index:0; width:100%; height:100%; pointer-events:none; }
+
+        .wrap{
+            position:relative; z-index:2; max-width:1200px; margin:0 auto;
+            padding: max(16px, 4vw);
+            padding-left: calc(max(16px, 4vw) + env(safe-area-inset-left));
+            padding-right: calc(max(16px, 4vw) + env(safe-area-inset-right));
+            padding-top: calc(max(16px, 4vw) + env(safe-area-inset-top));
+            padding-bottom: calc(max(16px, 4vw) + env(safe-area-inset-bottom));
+        }
+
+        header{ display:flex; gap:14px; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; }
+        .brand{ display:flex; gap:10px; align-items:center; }
+        .logo{ width:52px; height:52px; border-radius:10px; background: linear-gradient(135deg, rgba(0,229,255,0.12), rgba(138,43,226,0.08)); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.04); box-shadow:0 6px 18px rgba(0,0,0,0.6), inset 0 0 18px rgba(0,229,255,0.02); font-family:var(--fw-title); font-weight:700; color:var(--neon-blue); font-size:18px; }
+        .brand h1{ margin:0; font-size: clamp(16px, 4vw, 20px); font-family:var(--fw-title); letter-spacing:0.8px; }
+        .brand p{ margin:0; font-size:12px; color:var(--muted); }
+
+        nav{ display:flex; gap:10px; align-items:center; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity; padding-bottom:4px; max-width:100%; }
+        nav::-webkit-scrollbar{ height:6px; }
+        nav::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.08); border-radius:4px; }
+        .nav-btn{ background:transparent; border:1px solid rgba(255,255,255,0.06); padding:10px 14px; color:var(--neon-blue); border-radius:10px; backdrop-filter: blur(6px); cursor:pointer; transition:transform .18s ease, box-shadow .18s; font-family:var(--fw-ui); font-size:14px; min-height:44px; min-width:44px; touch-action:manipulation; -webkit-tap-highlight-color: transparent; flex:0 0 auto; scroll-snap-align:start; }
+        .nav-btn:hover{ transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,229,255,0.07); }
+        .cta{ background:var(--accent-gradient); color:#041226; font-weight:700; border:none; }
+
+        .hero{ margin:8px 0 24px; padding: clamp(18px, 4vw, 36px); border-radius:14px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); display:grid; grid-template-columns:1fr 420px; gap:16px; align-items:center; overflow:hidden; }
+        .hero h2{ margin:0 0 8px; font-family:var(--fw-title); font-size: clamp(20px, 5vw, 28px); color:var(--neon-blue); background:linear-gradient(90deg,var(--neon-blue),var(--neon-purple)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+        .tag{ display:inline-flex; gap:8px; align-items:center; color:var(--muted); font-size:14px; flex-wrap:wrap; }
+        .enter-wrap{ display:flex; gap:10px; flex-wrap:wrap; }
+        .enter{ padding:12px 16px; border-radius:10px; background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--neon-blue); cursor:pointer; font-weight:700; transition:transform .15s; min-height:44px; }
+        .enter:hover{ transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,229,255,0.05); }
+        .hero-visual{ background:linear-gradient(180deg, rgba(0,0,0,0.12), rgba(255,255,255,0.02)); border-radius:10px; padding:16px; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; min-height:180px; position:relative; overflow:hidden; }
+
+        section{ margin:24px 0; padding:18px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); border:1px solid rgba(255,255,255,0.03); }
+        .section-title{ display:flex; align-items:center; gap:12px; margin-bottom:12px; justify-content:space-between; flex-wrap:wrap; }
+        .section-title h3{ margin:0; font-family:var(--fw-title); color:var(--neon-purple); font-size: clamp(16px, 3.8vw, 18px); }
+        .section-title p{ margin:0; color:var(--muted); font-size:13px; }
+
+        .filters{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+        .filter-btn{ padding:10px 12px; background:transparent; border:1px solid rgba(255,255,255,0.04); border-radius:10px; color:var(--muted); cursor:pointer; font-size:14px; min-height:40px; }
+        .filter-btn.active{ background:linear-gradient(90deg, rgba(0,229,255,0.06), rgba(138,43,226,0.04)); color:var(--neon-blue); border-color:rgba(138,43,226,0.2); }
+
+        .gallery-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+        .photo{ position:relative; overflow:hidden; border-radius:10px; min-height:140px; background:var(--glass); cursor:pointer; border:1px solid rgba(255,255,255,0.03); transition:transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .2s; }
+        .photo img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .9s ease; }
+        .photo:hover{ transform:translateY(-6px) scale(1.01); box-shadow:0 20px 50px rgba(0,0,0,0.6); }
+
+        /* Slider */
+        .slider{ display:flex; align-items:center; gap:10px; }
+        .slider-viewport{ overflow:hidden; flex:1; }
+        .cards{ display:flex; gap:12px; transition:transform .6s cubic-bezier(.2,.9,.2,1); will-change:transform; padding-bottom:6px; }
+        .card{ min-width: clamp(240px, 80vw, 320px); max-width:340px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); padding:16px; border-radius:12px; cursor:grab; transform-style:preserve-3d; }
+        .card:active{ cursor:grabbing; }
+        .card h4{ margin:0 0 6px; font-family:var(--fw-title); color:var(--neon-blue); font-size:16px; }
+        .rating{ color:var(--neon-purple); font-weight:700; font-size:14px; }
+        .icon-btn{ background:transparent; color:var(--neon-blue); border:1px solid rgba(255,255,255,0.06); border-radius:10px; min-width:44px; min-height:44px; font-size:18px; cursor:pointer; }
+
+        .about-wrap{ display:grid; grid-template-columns:1fr 320px; gap:18px; align-items:start; }
+        .bio{ background:linear-gradient(90deg, rgba(0,229,255,0.02), rgba(138,43,226,0.02)); padding:16px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); color:var(--muted); }
+        .visual-narrative{ border-radius:10px; padding:12px; background:linear-gradient(90deg, rgba(255,255,255,0.01), transparent); }
+
+        form{ display:grid; gap:10px; }
+        input,textarea{ background:transparent; border:1px solid rgba(255,255,255,0.04); padding:10px; border-radius:8px; color:var(--neon-blue); font-family:var(--fw-ui); }
+        textarea{ min-height:120px; resize:vertical; color:var(--muted); }
+        .send{ background:var(--accent-gradient); border:none; padding:10px 14px; color:#041226; border-radius:8px; cursor:pointer; font-weight:700; }
+
+        /* Contact info styles */
+        .contact-info{ display:grid; gap:10px; grid-template-columns:1fr; }
+        @media (min-width: 520px){ .contact-info{ grid-template-columns:1fr 1fr; } }
+        .contact-item{ display:inline-flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid rgba(255,255,255,0.06); border-radius:10px; text-decoration:none; color:var(--neon-blue); background:transparent; min-height:44px; }
+        .contact-item span{ color:#dfe7f3; }
+
+        footer{ margin-top:20px; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+
+        /* neon orbit (CSS driven; respects reduced motion) */
+        .neon-orbit {
+            position: fixed; top: 50%; left: 50%; width: 260px; height: 260px; border-radius: 50%;
+            border: 2px solid rgba(0, 229, 255, 0.12);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.08), inset 0 0 40px rgba(138, 43, 226, 0.06);
+            animation: orbit-rotate 18s linear infinite; pointer-events: none; z-index: 1;
+            transform-origin: center center; filter: blur(0.4px); transform: translate(-50%, -50%);
+        }
+        @keyframes orbit-rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+            50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.04); }
+            100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+        }
+
+        /* Respect user's reduced motion preferences and touch devices */
+        @media (prefers-reduced-motion: reduce) {
+            .neon-orbit { animation: none; }
+            .photo, .card, .nav-btn, .enter { transition: none; }
+            .cards { transition: none; }
+        }
+        @media (hover:none) {
+            .photo:hover{ transform:none; box-shadow:none; }
+            .photo img{ transform:none !important; }
+        }
+
+        @media (max-width:920px){ .hero{ grid-template-columns:1fr; } .about-wrap{ grid-template-columns:1fr; } .hero-visual{ min-height:140px; } }
+        @media (max-width:600px){ .brand h1{ font-size:16px; } }
+    </style>
+</head>
+<body>
+    <!-- Neon Orbit Decoration (CSS-driven) -->
+    <div class="neon-orbit" aria-hidden="true"></div>
+
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <div class="wrap" role="main">
+        <header>
+            <div class="brand">
+                <div class="logo" aria-hidden="true">CP</div>
+                <div>
+                    <h1>CyberPort</h1>
+                    <p>Fotografi · Ulasan Game</p>
+                </div>
+            </div>
+
+            <nav aria-label="Main navigation">
+                <button class="nav-btn" data-target="home">Home</button>
+                <button class="nav-btn" data-target="gallery">Galeri</button>
+                <button class="nav-btn" data-target="reviews">Ulasan Game</button>
+                <button class="nav-btn" data-target="about">Tentang Saya</button>
+                <button class="nav-btn" data-target="contact">Kontak</button>
+                <button class="nav-btn cta" id="toggle-theme">Mode</button>
+            </nav>
+        </header>
+
+        <!-- Intro -->
+        <section id="home" aria-labelledby="home-title" class="hero">
+            <div class="intro">
+                <div class="tag">✨ Visual Tech · 🎮 Game Critique · 🛰�� Futuristic Aesthetic</div>
+                <h2 id="home-title">Fotografi dan Ulasan Game dalam Visual Cyberpunk</h2>
+                <p>Selamat datang-ini adalah Portofolio saya mengenai fotografer dan pengulas game.</p>
+
+                <div class="enter-wrap">
+                    <button class="enter" data-target="gallery">Masuk ke Galeri</button>
+                    <button class="enter" data-target="reviews">Baca Ulasan Terbaru</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery -->
+        <section id="gallery" aria-labelledby="gallery-title">
+            <div class="section-title">
+                <h3 id="gallery-title">Galeri Fotografi</h3>
+            </div>
+
+            <div class="filters" role="toolbar" aria-label="Filter gallery">
+                <button class="filter-btn active" data-filter="all">Semua</button>
+                <button class="filter-btn" data-filter="pemandangan alam">Pemandangan alam</button>
+                <button class="filter-btn" data-filter="portrait">Potret</button>
+                <button class="filter-btn" data-filter="lanscape">Landscape</button>
+            </div>
+
+            <div class="gallery-grid" id="gallery-grid">
+                <figure class="photo" data-category="pemandangan alam">
+                    <img src="sudan.jpg" alt="Pemandangan alam sudan" loading="lazy">
+                    <figcaption class="meta">Pemandangan wisata desa Sudan</figcaption>
+                </figure>
+
+                <figure class="photo" data-category="portrait">
+                    <img src="cewek random.jpg" alt="Kota Lasem" loading="lazy">
+                    <figcaption class="meta">Kota Lasem, Indonesia</figcaption>
+                </figure>
+
+                <figure class="photo" data-category="portrait">
+                    <img src="raka.jpg" alt="Teman ku" loading="lazy">
+                    <figcaption class="meta">Teman ku</figcaption>
+                </figure>
+
+                <figure class="photo" data-category="lanscape">
+                    <img src="bali.jpg" alt="wisata bali" loading="lazy">
+                    <figcaption class="meta">Tempat istirahat wisata bali</figcaption>
+                </figure>
+
+                <figure class="photo" data-category="portrait">
+                    <img src="adi.jpg" alt="adik" loading="lazy">
+                    <figcaption class="meta">Saudara kecil ku</figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <!-- Reviews -->
+        <section id="reviews" aria-labelledby="reviews-title">
+            <div class="section-title">
+                <h3 id="reviews-title">Ulasan Game</h3>
+            </div>
+
+            <div class="slider">
+                <div class="slider-controls">
+                    <button id="prev" class="icon-btn" aria-label="Previous review">◀</button>
+                </div>
+
+                <div class="slider-viewport" id="slider-viewport" tabindex="0">
+                    <div class="cards" id="cards">
+                        <article class="card" data-id="1" tabindex="0">
+                            <h4>Devil May Cry</h4>
+                            <div class="rating">10 / 10</div>
+                            <p>Seri Devil May Cry adalah warisan game aksi bergaya tinggi yang memadukan pertarungan cepat, karakter ikonik, dan dunia gelap penuh iblis dengan narasi emosional dan penuh gaya.</p>
+                        </article>
+
+                        <article class="card" data-id="2" tabindex="0">
+                            <h4>Little Nightmares</h4>
+                            <div class="rating">9.5 / 10</div>
+                            <p>Seri Little Nightmares adalah perjalanan gelap dan penuh simbol tentang ketakutan masa kecil, dengan atmosfer mencekam, desain visual yang memikat, dan narasi tanpa kata yang menyentuh.
+</p>
+                        </article>
+
+                        <article class="card" data-id="3" tabindex="0">
+                            <h4>Little Misfortune</h4>
+                            <div class="rating">9.2 / 10</div>
+                            <p>Game Little Misfortune adalah petualangan gelap yang dibalut dengan humor absurd dan kepolosan anak kecil, menyajikan kisah menyentuh tentang trauma, harapan, dan pencarian kebahagiaan di dunia yang penuh absurditas dan bahaya.</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="slider-controls">
+                    <button id="next" class="icon-btn" aria-label="Next review">▶</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- About -->
+        <section id="about" aria-labelledby="about-title">
+            <div class="section-title">
+                <h3 id="about-title">Tentang Saya</h3>
+            </div>
+
+            <div class="about-wrap">
+                <div class="bio">
+                    <p style="margin-top:0;color:var(--neon-blue); font-family:var(--fw-title);">Wahyu arief riyanto — Visualist & Game Critic</p>
+                    <p>Saya fotografer & game critic pemula dengan pengalaman masih baru dan belajar hal baru.</p>
+
+                    <ul style="color:var(--muted); margin:12px 0 0; padding-left:18px;">
+                        <li>Fotografer bebas dan kreatif.</li>
+                        <li>Ulasan mendalam: mekanik, estetika, audio, visual dan story</li>
+                        <li>Memiliki pengetahuan luas tentang game dan skill edit dan fotografi</li>
+                    </ul>
+                </div>
+
+                <div class="visual-narrative" id="narrative">
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+                        <div style="width:8px; height:8px; border-radius:50%; background:var(--neon-blue);"></div>
+                        <div><strong style="color:var(--neon-purple); margin-right:6px;">2019</strong> Saya memulai memotret pada tahun segitu dengan, memfoto hal random.</div>
+                    </div>
+                    <div style="height:12px"></div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <div style="width:8px; height:8px; border-radius:50%; background:var(--neon-purple);"></div>
+                        <div><strong style="color:var(--neon-blue); margin-right:6px;">2021</strong> saya Memadukan dan belajar tentang fotografi dan game.</div>
+                    </div>
+
+                    <div style="margin-top:12px; color:var(--muted); font-size:13px;">
+                        Filosofi: Ia menangkap cahaya dan menyelami pixel. Ia bukan hanya melihat, tapi memahami. Ia adalah penafsir dunia—dalam diam, dalam gerak, dalam pilihan.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact -->
+        <section id="contact" aria-labelledby="contact-title">
+            <div class="section-title">
+                <h3 id="contact-title">Kontak</h3>
+            </div>
+            <div class="contact-info" role="list">
+                <a role="listitem" class="contact-item" href="tel:+6289601020513">📞 <span>+62 896-0102-0513</span></a>
+                <a role="listitem" class="contact-item" href="email:arief32152@gmail.com">✉️ <span>arief32152@gmail.com</span></a>
+                <div role="listitem" class="contact-item">📍 <span>Toko Langgeng jaya sebelah puskesmas kragan 1 Jl.Kragan-Sedan.</span></div>
+            </div>
+            <div style="height:12px"></div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <a href="https://www.instagram.com/fiwa_photographers?igsh=eGt6dmp5OGlqc3Fm" target="_blank" rel="noopener noreferrer" aria-label="Instagram" style="color:var(--neon-purple); text-decoration:none; font-size:24px; min-width:44px; min-height:44px; display:inline-flex; align-items:center;">📸</a>
+                <a href="https://github.com/warmoniw" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style="color:var(--muted); text-decoration:none; font-size:24px; min-width:44px; min-height:44px; display:inline-flex; align-items:center;">💾</a>
+            </div>
+        </section>
+
+        <footer>
+            <div>© <span id="year"></span> CyberPort — Portofolio</div>
+            <div style="color:var(--muted)">Designed in cyberpunk neon • lightweight animations</div>
+        </footer>
+    </div>
+
+    <script>
+    (function(){
+        // Short helpers
+        const $ = s => document.querySelector(s);
+        const $$ = s => Array.from(document.querySelectorAll(s));
+
+        // Elements
+        const grid = $('#gallery-grid');
+        const cards = $('#cards');
+        const prevBtn = $('#prev');
+        const nextBtn = $('#next');
+        const yearEl = $('#year');
+        const toggleThemeBtn = $('#toggle-theme');
+        const viewport = $('#slider-viewport');
+
+        // State
+        let index = 0;
+        let particles = [];
+        let W = window.innerWidth, H = window.innerHeight;
+
+        const isCoarse = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // AudioContext setup (create on first user gesture for autoplay policies)
+        const AudioCtor = window.AudioContext || window.webkitAudioContext || null;
+        let audio = null;
+        function ensureAudio(){
+            if(!AudioCtor) return null;
+            if(!audio) {
+                try { audio = new AudioCtor(); } catch(e){ audio = null; }
+            }
+            if(audio && audio.state === 'suspended') { audio.resume().catch(()=>{}); }
+            return audio;
+        }
+
+        function playClickTone(freq=600, dur=0.04){
+            const a = ensureAudio();
+            if(!a) return;
+            const o = a.createOscillator();
+            const g = a.createGain();
+            o.type = 'sine';
+            o.frequency.value = freq;
+            g.gain.value = 0.0001;
+            o.connect(g); g.connect(a.destination);
+            const now = a.currentTime;
+            g.gain.exponentialRampToValueAtTime(0.18, now + 0.005);
+            o.start(now);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+            o.stop(now + dur + 0.02);
+        }
+
+        // Year
+        if(yearEl) yearEl.textContent = new Date().getFullYear();
+
+        // Navigation smooth scroll
+        $$('.nav-btn, .enter').forEach(btn=>{
+            btn.addEventListener('click', e=>{
+                const t = btn.dataset.target;
+                if(!t) return;
+                const target = document.getElementById(t);
+                if(target) {
+                    target.scrollIntoView({behavior:'smooth', block:'start'});
+                    playClickTone();
+                }
+            });
+        });
+
+        // Gallery filter
+        $$('.filter-btn').forEach(f=>{
+            f.addEventListener('click', ()=>{
+                $$('.filter-btn').forEach(b=>b.classList.remove('active'));
+                f.classList.add('active');
+                const filter = f.dataset.filter;
+                $$('.photo').forEach(p=>{
+                    p.style.display = (filter==='all' || p.dataset.category===filter) ? '' : 'none';
+                });
+            });
+        });
+
+        // Photo parallax & lightbox (skip parallax on touch devices)
+        function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
+        $$('.photo').forEach(photo=>{
+            const img = photo.querySelector('img');
+            if(!isCoarse){
+                const onMove = (e)=>{
+                    if(!img) return;
+                    const rect = photo.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width;
+                    const y = (e.clientY - rect.top) / rect.height;
+                    img.style.transform = `scale(1.08) translate(${(x-0.5)*12}px, ${(y-0.5)*8}px)`;
+                };
+                const debounced = debounce(onMove, 8);
+                photo.addEventListener('mousemove', debounced);
+                photo.addEventListener('mouseleave', ()=>{ if(img) img.style.transform = ''; });
+            }
+
+            photo.addEventListener('click', ()=>{
+                const src = img ? img.src : null;
+                if(!src) return;
+                openLightbox(src);
+            });
+        });
+
+        function openLightbox(src){
+            const overlay = document.createElement('div');
+            overlay.setAttribute('role','dialog');
+            overlay.setAttribute('aria-modal','true');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(2,4,10,0.92);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;overscroll-behavior:contain;';
+            overlay.innerHTML = `
+                <div id="lb-wrap" style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                    <div id="lb-viewport" style="width:90vw;height:90vh;max-width:100%;max-height:100%;position:relative;touch-action:none;overflow:hidden;border:1px solid rgba(255,255,255,0.06);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.8);background:rgba(0,0,0,0.2);">
+                        <img id="lb-img" src="${src}" alt="Preview foto" style="display:block;max-width:100%;max-height:100%;object-fit:contain;transform-origin:center center;user-select:none;-webkit-user-drag:none;"/>
+                    </div>
+                    <button aria-label="Close" id="lb-close" style="position:absolute;top:10px;right:10px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--neon-blue);padding:10px 12px;border-radius:10px;cursor:pointer;min-height:44px;">Tutup</button>
+                    <div aria-hidden="true" style="position:absolute;left:12px;bottom:12px;color:#9aa2b1;font-size:12px;background:rgba(0,0,0,0.35);padding:6px 8px;border-radius:8px;">Pinch/Scroll untuk zoom · Seret untuk geser</div>
+                </div>
+            `;
+
+            const closeBtn = overlay.querySelector('#lb-close');
+            const viewport = overlay.querySelector('#lb-viewport');
+            const imgEl = overlay.querySelector('#lb-img');
+
+            // Prevent page scroll while open
+            const prevOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+
+            function close(){
+                document.body.style.overflow = prevOverflow;
+                document.body.removeChild(overlay);
+                window.removeEventListener('keydown', onKey);
+            }
+
+            const onKey = (e)=>{ if(e.key === 'Escape') close(); };
+            window.addEventListener('keydown', onKey);
+
+            closeBtn.addEventListener('click', close);
+            overlay.addEventListener('click', (ev)=>{ if(ev.target === overlay) close(); });
+
+            // Basic pan & zoom implementation (mobile friendly)
+            let scale = 1, minScale = 1, maxScale = 4;
+            let x = 0, y = 0;
+            let active = new Map(); // pointerId -> {x,y}
+            let pinchStartDist = null;
+            let pinchStartScale = 1;
+            let lastTapTime = 0;
+
+            function getBaseSize(){
+                const vw = viewport.clientWidth;
+                const vh = viewport.clientHeight;
+                const nw = imgEl.naturalWidth || vw;
+                const nh = imgEl.naturalHeight || vh;
+                const r = Math.min(vw / nw, vh / nh);
+                return { w: nw * r, h: nh * r };
+            }
+            function clampPan(){
+                const vw = viewport.clientWidth;
+                const vh = viewport.clientHeight;
+                const base = getBaseSize();
+                const maxX = Math.max(0, (base.w * scale - vw) / 2);
+                const maxY = Math.max(0, (base.h * scale - vh) / 2);
+                if(x > maxX) x = maxX;
+                if(x < -maxX) x = -maxX;
+                if(y > maxY) y = maxY;
+                if(y < -maxY) y = -maxY;
+            }
+            function apply(){
+                clampPan();
+                imgEl.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+            }
+
+            viewport.addEventListener('pointerdown', (e)=>{
+                viewport.setPointerCapture(e.pointerId);
+                const now = e.timeStamp;
+                // Double-tap to toggle zoom
+                if(now - lastTapTime < 300 && active.size === 0){
+                    scale = scale > 1 ? 1 : 2;
+                    x = 0; y = 0;
+                    apply();
+                }
+                lastTapTime = now;
+
+                active.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                if(active.size === 2){
+                    const pts = Array.from(active.values());
+                    pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                    pinchStartScale = scale;
+                }
+            });
+
+            viewport.addEventListener('pointermove', (e)=>{
+                if(!active.has(e.pointerId)) return;
+                const prev = active.get(e.pointerId);
+                const curr = { x: e.clientX, y: e.clientY };
+                active.set(e.pointerId, curr);
+
+                if(active.size === 1){
+                    // Pan
+                    x += (curr.x - prev.x);
+                    y += (curr.y - prev.y);
+                    apply();
+                } else if(active.size === 2){
+                    // Pinch zoom
+                    const pts = Array.from(active.values());
+                    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                    if(pinchStartDist){
+                        const nextScale = Math.min(maxScale, Math.max(minScale, pinchStartScale * (dist / pinchStartDist)));
+                        scale = nextScale;
+                        apply();
+                    }
+                }
+            });
+
+            function endPointer(e){
+                active.delete(e.pointerId);
+                if(active.size < 2){
+                    pinchStartDist = null;
+                }
+            }
+            viewport.addEventListener('pointerup', endPointer);
+            viewport.addEventListener('pointercancel', endPointer);
+            viewport.addEventListener('pointerleave', endPointer);
+
+            // Mouse wheel / trackpad zoom (desktop)
+            viewport.addEventListener('wheel', (e)=>{
+                e.preventDefault();
+                const delta = -Math.sign(e.deltaY) * 0.2;
+                const next = scale * (1 + delta);
+                scale = Math.min(maxScale, Math.max(minScale, next));
+                apply();
+            }, { passive: false });
+
+            document.body.appendChild(overlay);
+            closeBtn.focus();
+        }
+
+        // Slider logic (compute visible count)
+        function safeCardWidth(){
+            const first = cards.querySelector('.card');
+            if(!first) return 320; // fallback
+            const rect = first.getBoundingClientRect();
+            const gap = 12; // keep in sync with CSS
+            return rect.width + gap;
+        }
+        function updateSlider(){
+            if(!cards) return;
+            const w = safeCardWidth();
+            const viewportWidth = viewport ? viewport.clientWidth : window.innerWidth;
+            const visibleCount = Math.max(1, Math.floor(viewportWidth / w));
+            const maxIndex = Math.max(0, cards.children.length - visibleCount);
+            index = Math.max(0, Math.min(index, maxIndex));
+            cards.style.transform = `translateX(${-(index * w)}px)`;
+            // Enable/disable controls for clarity
+            if(prevBtn) prevBtn.disabled = (index === 0);
+            if(nextBtn) nextBtn.disabled = (index === maxIndex);
+        }
+
+        if(prevBtn) prevBtn.addEventListener('click', ()=>{ index = Math.max(0, index - 1); updateSlider(); playClickTone(); });
+        if(nextBtn) nextBtn.addEventListener('click', ()=>{ index = Math.min(index + 1, cards.children.length - 1); updateSlider(); playClickTone(); });
+
+        // Card tilt (skip on touch devices)
+        if(!isCoarse){
+            $$('.card').forEach(card=>{
+                card.addEventListener('mousemove', e=>{
+                    const r = card.getBoundingClientRect();
+                    const x = (e.clientX - r.left) / r.width;
+                    const y = (e.clientY - r.top) / r.height;
+                    const rx = (y - 0.5) * 6;
+                    const ry = (x - 0.5) * -10;
+                    card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                });
+                card.addEventListener('mouseleave', ()=> card.style.transform = '');
+            });
+        }
+
+        // Contact form (no-op if not present)
+        const contactForm = $('#contact-form');
+        if(contactForm){
+            contactForm.addEventListener('submit', async e=>{
+                const action = contactForm.getAttribute('action') || '';
+                if(action.includes('your_form_id')){
+                    e.preventDefault();
+                    playClickTone(880, 0.06);
+                    alert('Terima kasih! Pesan diterima (demo). Ganti `your_form_id` pada atribut action untuk mengirim sebenarnya.');
+                    contactForm.reset();
+                    return;
+                }
+            });
+        }
+
+        // Background canvas: lighter grid + particles (optimized for mobile)
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+
+        function resizeCanvas(){
+            if(!canvas) return;
+            W = canvas.width = innerWidth;
+            H = canvas.height = innerHeight;
+        }
+        function rand(a,b){ return a + Math.random()*(b-a); }
+        function initParticles(){
+            particles = [];
+            let densityFactor = (W*H)/50000;
+            if(isCoarse) densityFactor /= 1.8; // fewer on touch
+            if(prefersReduced) densityFactor /= 2.5; // fewer if user prefers less motion
+            const count = Math.max(16, Math.min(50, Math.floor(densityFactor)) );
+            for(let i=0;i<count;i++){
+                particles.push({
+                    x: Math.random()*W,
+                    y: Math.random()*H,
+                    vx: rand(-0.25,0.25),
+                    vy: rand(-0.45,0.45),
+                    r: rand(0.6,2.0),
+                    hue: Math.random()>0.5?190:270,
+                    life: rand(80, 240)
+                });
+            }
+        }
+
+        let lastGridUpdate = 0;
+        function drawParticles(ts){
+            if(!ctx) return;
+            if(!ts) ts = performance.now();
+            ctx.clearRect(0,0,W,H);
+
+            // draw subtle vertical bands (update less frequently)
+            if(ts - lastGridUpdate > (isCoarse || prefersReduced ? 140 : 80)){
+                ctx.save();
+                ctx.globalAlpha = 0.05;
+                ctx.strokeStyle = '#00e5ff';
+                ctx.lineWidth = 1;
+                const spacing = 140; // fewer lines -> cheaper
+                for(let x = 0; x < W; x += spacing){
+                    ctx.beginPath();
+                    ctx.moveTo(x + (Math.sin(ts/4200 + x)*3), 0);
+                    ctx.lineTo(x + (Math.sin(ts/4200 + x)*3), H);
+                    ctx.stroke();
+                }
+                ctx.restore();
+                lastGridUpdate = ts;
+            }
+
+            // particles
+            particles.forEach(p=>{
+                ctx.beginPath();
+                ctx.fillStyle = `hsla(${p.hue},90%,60%,0.9)`;
+                if(!(isCoarse || prefersReduced)){
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = `hsla(${p.hue},90%,60%,0.8)`;
+                }
+                ctx.fillRect(p.x, p.y, p.r*2, p.r*2);
+                ctx.shadowBlur = 0;
+                p.x += p.vx; p.y += p.vy;
+                p.life--;
+                if(p.x < -10) p.x = W + 10;
+                if(p.x > W+10) p.x = -10;
+                if(p.y < -10) p.y = H + 10;
+                if(p.y > H+10) p.y = -10;
+                if(p.life < 0){ p.x = Math.random()*W; p.y = Math.random()*H; p.life = rand(60,220); }
+            });
+
+            requestAnimationFrame(drawParticles);
+        }
+
+        // Toggle pseudo-theme
+        let altMode = false;
+        if(toggleThemeBtn){
+            toggleThemeBtn.addEventListener('click', ()=>{
+                altMode = !altMode;
+                document.body.style.background = altMode ? 'linear-gradient(120deg,#050013,#050014)' : '';
+                playClickTone(740,0.06);
+            });
+        }
+
+        // Keyboard slider
+        window.addEventListener('keydown', (e)=>{
+            if(e.key === 'ArrowLeft'){ index = Math.max(0, index-1); updateSlider(); }
+            if(e.key === 'ArrowRight'){ index = Math.min(cards.children.length-1, index+1); updateSlider(); }
+            if(e.key === 'Tab') document.documentElement.classList.add('user-tab');
+        });
+
+        // Initialize animations if GSAP present
+        function runEntranceAnims(){
+            if(window.gsap && typeof gsap.from === 'function'){
+                try{
+                    gsap.from('.logo', {y:-20, opacity:0, duration:0.8});
+                    gsap.from('.nav-btn', {opacity:0, y:-8, stagger:0.06, delay:0.2});
+                    gsap.from('.hero .holo', {scale:0.9, opacity:0, duration:0.9, ease:'back.out(1.2)'});
+                    gsap.from('#cards .card', {y:30, opacity:0, stagger:0.12, delay:0.5});
+                    gsap.from('#gallery-grid .photo', {y:12, opacity:0, stagger:0.05, delay:0.7});
+                }catch(e){ /* ignore */ }
+            }
+        }
+
+        // Setup & run
+        function init(){
+            // ensure audio only created after a user gesture; hook a one-time user gesture
+            const resumeOnGesture = ()=>{
+                ensureAudio();
+                window.removeEventListener('pointerdown', resumeOnGesture);
+                window.removeEventListener('keydown', resumeOnGesture);
+            };
+            window.addEventListener('pointerdown', resumeOnGesture);
+            window.addEventListener('keydown', resumeOnGesture);
+
+            // slider initial position
+            updateSlider();
+
+            // background canvas
+            resizeCanvas();
+            initParticles();
+            requestAnimationFrame(drawParticles);
+
+            // Run entrance animations (if available)
+            runEntranceAnims();
+        }
+
+        // Resize handler (throttled simple)
+        let resizeTimer = null;
+        function handleResize(){
+            resizeCanvas();
+            initParticles();
+            updateSlider();
+        }
+        window.addEventListener('resize', ()=>{
+            if(resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 120);
+        });
+        window.addEventListener('orientationchange', ()=>{
+            if(resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handleResize, 120);
+        });
+
+        // run init
+        init();
+
+    })();
+    </script>
+</body>
+</html>
